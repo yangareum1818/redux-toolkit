@@ -97,8 +97,8 @@ yarn add @reduxjs/toolkit
 ```
 
 ## 다른 점 : store
+<img width="784" alt="Pasted Graphic" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/b7e2170c-0d0f-450d-9199-f9783a914e17">
 
-![]()
 `Redux`를 사용한 경우 : 하나의 store안에 모든 store를 넣어 거대한 store를 만들었다.
 
 `Redux-toolkit`을 사용한 경우 :
@@ -191,22 +191,25 @@ export default function App(){
 - `<Provider></Provider>` : `store`를 전달 해주기 위한 태그
 
 - `useSelector(() => {})` : 전달받은 `store`에서 정보들을 사용하기 위한 `hook`
-  _ state를 `console.log()`로 출력했을 시,
-  ￼
-  _ 이 counter는 store의 reducer의 이름이다.
-  _ `state => state.value` 👉🏻 `state => state.counter.value`
-  _ 화면에 초기값인 “0”이 표시되는 것을 확인할 수 있다.
+  - state를 `console.log()`로 출력했을 시,
+  
+  ￼<img width="147" alt="Pasted Graphic 1" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/fda46280-ab4c-48a0-9377-7d4f7f3f1b96">
+
+  - 이 `counter`는 `store`의 `reducer`의 이름이다.
+  - `state => state.value` 👉🏻 `state => state.counter.value`
+  - 화면에 초기값인 “0”이 표시되는 것을 확인할 수 있다.
 
 - `dispatch()`
-  _ 이벤트(클릭)을 발생했을 때, 숫자가 증가한다.
-  _ `type`은 `slice`에 해당하는 `name`을 적고, `“/“`한 후? 원하는 `reducers`를 적어준다.{ type: slice의 name/원하는 reducers, step: 2 ( 2씩 증가 ) } \* But, 이 방법 보다 좀 더 **간단하고 “step”이라는 명칭을 사용하지 않는 방법** 이 있다.
+  - 이벤트(클릭)을 발생했을 때, 숫자가 증가한다.
+  - `type`은 `slice`에 해당하는 `name`을 적고, `“/“`한 후? 원하는 `reducers`를 적어준다.{ type: slice의 name/원하는 reducers, step: 2 ( 2씩 증가 ) } \* But, 이 방법 보다 좀 더 **간단하고 “step”이라는 명칭을 사용하지 않는 방법** 이 있다.
 
       * __`reducers`함수들을 참고해서 자동으로 `action`을 만들어내는 `actionCreate`를 만들어준다.__ `dispatch(counterSlice.actions.up(2))`  ( `actions` 복수형⭐️ )
       * 그럼 `Slice`에 `“up”`의 `action`이 어떻게 찍힐까 ?
-
-  ￼
-  _ `actions`를 하고 `.up(2)`을 하게 되면 **`payload`라는 이름의 약속된 값이 생긴다.**
-  _ Slice의 up함수를 그럼 수정해줘야된다.
+  
+  ￼	<img width="230" alt="Pasted Graphic 2" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/55fc917d-0ad8-47b1-b290-53e41e9089ec">
+  
+  - `actions`를 하고 `.up(2)`을 하게 되면 **`payload`라는 이름의 약속된 값이 생긴다.**
+  - Slice의 up함수를 그럼 수정해줘야된다.
   `state.value = state.value + action.payload;`
 
 ## 파일 분리
