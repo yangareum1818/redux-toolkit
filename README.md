@@ -97,6 +97,7 @@ yarn add @reduxjs/toolkit
 ```
 
 ## 다른 점 : store
+
 <img width="784" alt="Pasted Graphic" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/b7e2170c-0d0f-450d-9199-f9783a914e17">
 
 `Redux`를 사용한 경우 : 하나의 store안에 모든 store를 넣어 거대한 store를 만들었다.
@@ -191,8 +192,9 @@ export default function App(){
 - `<Provider></Provider>` : `store`를 전달 해주기 위한 태그
 
 - `useSelector(() => {})` : 전달받은 `store`에서 정보들을 사용하기 위한 `hook`
+
   - state를 `console.log()`로 출력했을 시,
-  
+
   ￼<img width="147" alt="Pasted Graphic 1" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/fda46280-ab4c-48a0-9377-7d4f7f3f1b96">
 
   - 이 `counter`는 `store`의 `reducer`의 이름이다.
@@ -200,17 +202,18 @@ export default function App(){
   - 화면에 초기값인 “0”이 표시되는 것을 확인할 수 있다.
 
 - `dispatch()`
+
   - 이벤트(클릭)을 발생했을 때, 숫자가 증가한다.
   - `type`은 `slice`에 해당하는 `name`을 적고, `“/“`한 후? 원하는 `reducers`를 적어준다.{ type: slice의 name/원하는 reducers, step: 2 ( 2씩 증가 ) } \* But, 이 방법 보다 좀 더 **간단하고 “step”이라는 명칭을 사용하지 않는 방법** 이 있다.
 
-      * __`reducers`함수들을 참고해서 자동으로 `action`을 만들어내는 `actionCreate`를 만들어준다.__ `dispatch(counterSlice.actions.up(2))`  ( `actions` 복수형⭐️ )
-      * 그럼 `Slice`에 `“up”`의 `action`이 어떻게 찍힐까 ?
-  
-  ￼	<img width="230" alt="Pasted Graphic 2" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/55fc917d-0ad8-47b1-b290-53e41e9089ec">
-  
+    - **`reducers`함수들을 참고해서 자동으로 `action`을 만들어내는 `actionCreate`를 만들어준다.** `dispatch(counterSlice.actions.up(2))` ( `actions` 복수형⭐️ )
+    - 그럼 `Slice`에 `“up”`의 `action`이 어떻게 찍힐까 ?
+
+  ￼ <img width="230" alt="Pasted Graphic 2" src="https://github.com/yangareum1818/redux-toolkit/assets/81684775/55fc917d-0ad8-47b1-b290-53e41e9089ec">
+
   - `actions`를 하고 `.up(2)`을 하게 되면 **`payload`라는 이름의 약속된 값이 생긴다.**
   - Slice의 up함수를 그럼 수정해줘야된다.
-  `state.value = state.value + action.payload;`
+    `state.value = state.value + action.payload;`
 
 ## 파일 분리
 
@@ -289,3 +292,119 @@ export default counterSlice;
 // 간결하게 사용하기 위해서 구조분해할당으로 내보낸다.
 export const { up } = counterSlice.actions;
 ```
+
+# Redux toolkit : thunk를 이용해 비동기 작업 처리하기
+
+**기존의 비동기 코드**
+
+```javascript
+<button onClick={ async () => {
+    const resp = await fetch(‘https://~~~’);		// 1. 서버로부터 데이터를 가져온다.
+    const data = await resp.json();
+    // 2. actionCreate함수 set을 주고 가져온 데이터는 data.value안에 담는다.		4. dispatch로 보낸다.
+    dispatch(set(data.value));
+    // dispatch({ type: “counterSlice/set”, payload: data.value });		<= 3. 그럼 action(객체)이 만들어진다.
+}}>+ async fetch without thunk</button>
+
+<div>{count} | {status}</div>	// 5. count에 몇번 counting을 했는지 보여진다.
+```
+
+- 기존의 비동기 코드이다.
+- 아무문제가 없지만, 직관적으로 보이는 코드들이 눈에 거슬린다.
+- 동일한 비동기코드를 다른 곳에 쓴다면? **중복이 발생** 한다.
+- 코드가 많아지면서 무거워진다는 단점이 생긴다.
+
+**간결하게 바꿔보자**
+
+```javascript
+<button onClick={ () => {
+    dispatch(asyncUpFetch());
+}}>+ async thunk</button>
+```
+
+- 함수에 하고자하는 action 작업을 만든 후, dispatch()했을 때 그 함수가 실행되도록 해보자.
+
+## `createAsyncThunk()`
+
+> ⭐️ **비동기작업을 처리하는 `action`을 만들어준다.** ( 만든 함수를 `action creater`라고 부른다. )
+
+- 첫 번째 인자로 `Type`을 적는다.
+- 두 번째 인자로 `action` 실행 되었을 때, 처리되는 작업을 적어준다. ( **서버접속, 결과가져오기, 결과를 return** )
+
+<br/>
+
+- ❗️ **비동기 작업을 할 경우 3가지 상태** ❗️
+  - `pending` ( 대기 ) : 비동기 작업을 시작했을 때의 상태 ( Loading )
+  - `fulfilled` ( 완료 ): 비동기 작업이 끝났을 때 ( 데이터를 가져왔을 때 ) ( `Done`, `complete` .. )
+  - `rejected` ( 오류 ) : 오류가 생겨서 중단되었을 때 ( 에러를 띄워 어떤 에러인지 확인 ) ( fail )
+
+<br/>
+
+> 위 의 3가지 상태의 reducer가 필요하다. <br/>
+> `createSlice()`안에 ⭐️ **`extraReducers`** ⭐️를 사용한다.
+
+ex)
+
+```javascript
+const counterSlice = createSlice({
+  name: ‘counter’,
+  initialState: {
+    value: 0
+    status: ‘Welcome’
+  },
+  /* 동기 */
+  reducers: { … }
+
+  /* 비동기 */
+  extraReducers: (builder) => {
+	  builder.addCase(asyncUpFetch.pending, (state, action) => {
+	    state.status = "Loading";
+	  })
+	  builder.addCase(asyncUpFetch.fulfilled, (state, action) => {
+	    state.value = action.payload;
+	    state.status = "complete";
+	  })
+	  builder.addCase(asyncUpFetch.rejected, (state, action) => {
+	    state.status = "fail";
+	  })
+  }
+});
+```
+
+**특징**
+
+- 3가지의 상태일 때의 `reducer`를 각 각 정의를 해준다.
+- 모두 정의 하지 않아도되고, `fulfilled`에만 정의해도 된다.
+- **좋은 점 : 상태에 따른 체계적인 정의**
+
+### 동기`reducers` vs 비동기`extraReducers`의 차이점
+
+- **`reducers`는 `action create`** 를 자동으로 **만들어준다.**
+- **`extraReducers`는 `action create`** 를 자동으로 **만들어주지 못한다.**
+
+<br/>
+
+### `redux-toolkit`을 가장 잘 쓰는 방법
+
+> 서버 <=> 저장소 <=> UI 구조
+
+1. `UI` 시작 시, `createAsyncThunk`를 통해 서버에서 데이터를 가져와 `store`에 저장한다.
+2. `UI`는 `store`를 구독해놓고, 데이터가 바뀌면 `UI`도 자동으로 변경(되는 구조)한다.
+
+### `Thunk`를 이용해 비동기 통신을 할 경우의 문제점 ? 개선 방향
+
+- `api`코드가 `hook`이나 소스에 녹아 분산되어 있어 관리하기가 번거롭다.
+- `Thunk`로 비동기 통신을 하다보니 `redux`가 `store`보단 비동기통신을 하는 역할( `store`가 비대해지자 역할을 어긋난것 )
+- 비동기작업들은 `dispatch()`하지 않고, `react-query`로 결과만 뿌려주는 식으로 사용한다.
+
+* **관리**
+  - 클라이언트 상태 = `Redux`
+  - 서버 상태 = `react-query`
+
+#### 더 좋은 방법이 있을까?!
+
+: `redux-toolkit-query`?
+
+#### 공부하자.
+
+: `createEntityAdapter`
